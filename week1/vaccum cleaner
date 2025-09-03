@@ -1,0 +1,86 @@
+import random
+
+class VacuumEnvironment:
+    """
+    Represents a 4-room environment (A, B, C, D) for the vacuum cleaner agent.
+    0: Clean, 1: Dirty
+    """
+    def __init__(self, initial_state=None):
+        # Represent the state as a dictionary: {room: status (0=Clean, 1=Dirty)}
+        if initial_state:
+            self.state = initial_state
+        else:
+            self.state = {'A': random.choice([0, 1]),
+                          'B': random.choice([0, 1]),
+                          'C': random.choice([0, 1]),
+                          'D': random.choice([0, 1])}
+        self.agent_location = random.choice(list(self.state.keys())) # Agent starts in a random room
+
+    def is_dirty(self, room):
+        """Checks if a room is dirty."""
+        return self.state.get(room) == 1
+
+    def clean(self, room):
+        """Cleans a dirty room."""
+        if room in self.state and self.state[room] == 1:
+            self.state[room] = 0
+            return True
+        return False
+
+    def move_agent(self, new_room):
+        """Moves the agent to a new room."""
+        if new_room in self.state:
+            self.agent_location = new_room
+            return True
+        return False
+
+    def display(self):
+        """Prints the current state of the environment."""
+        print("Environment State:")
+        for room, status in self.state.items():
+            agent_marker = ' V' if room == self.agent_location else ''
+            print(f"  Room {room}: {'Dirty' if status == 1 else 'Clean'}{agent_marker}")
+        print("-" * 20)
+
+
+class VacuumAgent:
+    """
+    A simple reflex vacuum cleaner agent for the 4-room environment.
+    """
+    def __init__(self, environment):
+        self.environment = environment
+
+    def sense_and_act(self):
+        """Senses the environment and performs an action."""
+        current_room = self.environment.agent_location
+
+        # Sense
+        is_current_dirty = self.environment.is_dirty(current_room)
+
+        # Act
+        if is_current_dirty:
+            print(f"Agent in Room {current_room}: Cleaning...")
+            self.environment.clean(current_room)
+        else:
+            print(f"Agent in Room {current_room}: Moving...")
+            # Simple random movement to a neighboring room (assuming all rooms are connected)
+            available_rooms = list(self.environment.state.keys())
+            available_rooms.remove(current_room) # Cannot move to the same room
+            if available_rooms:
+                 next_room = random.choice(available_rooms)
+                 self.environment.move_agent(next_room)
+            else:
+                 print("No other rooms to move to.")
+
+
+# Simulate the agent
+# You can optionally set an initial state, e.g., {'A': 1, 'B': 0, 'C': 1, 'D': 0}
+env = VacuumEnvironment()
+agent = VacuumAgent(env)
+
+print("Initial Environment:")
+env.display()
+
+for _ in range(15): # Run for a few steps
+    agent.sense_and_act()
+    env.display()
