@@ -1,0 +1,116 @@
+import heapq
+
+# Goal state
+GOAL_STATE = (1, 2, 3,
+              4, 5, 6,
+              7, 8, 0)
+
+# Directions: up, down, left, right
+MOVES = {
+    'up': -3,
+    'down': 3,
+    'left': -1,
+    'right': 1
+}
+
+class PuzzleState:
+    def __init__(self, board, parent=None, move='', g=0):
+        self.board = board
+        self.parent = parent
+        self.move = move
+        self.g = g  # Cost from start to current state
+        self.h = self.heuristic()  # Estimated cost to goal
+        self.f = self.g + self.h  # Total estimated cost
+
+    def __lt__(self, other):
+        return self.f < other.f
+
+    def heuristic(self):
+        # Manhattan distance
+        distance = 0
+        for idx, value in enumerate(self.board):
+            if value == 0:
+                continue
+            target_idx = value - 1
+            x1, y1 = divmod(idx, 3)
+            x2, y2 = divmod(target_idx, 3)
+            distance += abs(x1 - x2) + abs(y1 - y2)
+        return distance
+
+    def get_neighbors(self):
+        neighbors = []
+        zero_index = self.board.index(0)
+
+        for move, pos_change in MOVES.items():
+            new_index = zero_index + pos_change
+
+            if self.is_valid_move(zero_index, new_index, move):
+                new_board = list(self.board)
+                new_board[zero_index], new_board[new_index] = new_board[new_index], new_board[zero_index]
+                neighbors.append(PuzzleState(tuple(new_board), self, move, self.g + 1))
+        return neighbors
+
+    def is_valid_move(self, zero_index, new_index, move):
+        # Check if move is within bounds
+        if new_index < 0 or new_index >= 9:
+            return False
+        if move == 'left' and zero_index % 3 == 0:
+            return False
+        if move == 'right' and zero_index % 3 == 2:
+            return False
+        return True
+
+    def get_path(self):
+        path = []
+        state = self
+        while state.parent:
+            path.append((state.move, state.board))
+            state = state.parent
+        path.reverse()
+        return path
+
+def a_star(start_board):
+    start_state = PuzzleState(start_board)
+    open_list = []
+    heapq.heappush(open_list, start_state)
+    closed_set = set()
+
+    while open_list:
+        current_state = heapq.heappop(open_list)
+
+        if current_state.board == GOAL_STATE:
+            return current_state.get_path()
+
+        closed_set.add(current_state.board)
+
+        for neighbor in current_state.get_neighbors():
+            if neighbor.board not in closed_set:
+                heapq.heappush(open_list, neighbor)
+
+    return None
+
+# ---------------------
+# Example Usage
+# ---------------------
+if __name__ == "__main__":
+    # Define start state (0 is the blank)
+    start_board = (1, 2, 3,
+                   4, 0, 6,
+                   7, 5, 8)
+
+    path = a_star(start_board)
+
+    if path:
+        print(f"Solution found in {len(path)} moves:")
+        print("Start:")
+        for i in range(0, 9, 3):
+            print(start_board[i:i+3])
+        print()
+
+        for move, board in path:
+            print(f"Move: {move}")
+            for i in range(0, 9, 3):
+                print(board[i:i+3])
+            print()
+    else:
+        print("No solution found.")
