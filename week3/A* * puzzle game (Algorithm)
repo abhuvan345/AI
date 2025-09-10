@@ -1,0 +1,31 @@
+function A_star(start_state, goal_state):
+    open_list = priority queue ordered by f = g + h
+    closed_set = empty set
+
+    start_state.g = 0
+    start_state.h = heuristic(start_state, goal_state)
+    open_list.push(start_state, f = start_state.g + start_state.h)
+
+    while open_list is not empty:
+        current = open_list.pop()  # state with lowest f
+
+        if current == goal_state:
+            return reconstruct_path(current)
+
+        closed_set.add(current)
+
+        for neighbor in neighbors(current):
+            if neighbor in closed_set:
+                continue
+
+            tentative_g = current.g + 1
+
+            if neighbor not in open_list or tentative_g < neighbor.g:
+                neighbor.parent = current
+                neighbor.g = tentative_g
+                neighbor.h = heuristic(neighbor, goal_state)
+                f = neighbor.g + neighbor.h
+                if neighbor not in open_list:
+                    open_list.push(neighbor, f)
+
+    return failure  # no solution
