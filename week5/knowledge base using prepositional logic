@@ -1,7 +1,9 @@
 from itertools import product
 
+# Define propositional symbols
 symbols = ['P', 'Q', 'R']
 
+# Define the KB sentences as functions on the model dict
 def sentence1(model):
     # Q -> P
     Q = model['Q']
@@ -23,16 +25,40 @@ def sentence3(model):
 def KB(model):
     return sentence1(model) and sentence2(model) and sentence3(model)
 
-def print_truth_table():
-    print(f"{'P':^3} {'Q':^3} {'R':^3} | {'Q->P':^5} {'P->¬Q':^6} {'Q∨R':^5} | {'KB True?':^9}")
-    print("-" * 38)
+def entails(KB, query, symbols):
+    """
+    Check if KB entails query by enumerating all models.
+    Returns True if for every model where KB is True, query is True.
+    """
     for values in product([True, False], repeat=len(symbols)):
         model = dict(zip(symbols, values))
-        s1 = sentence1(model)
-        s2 = sentence2(model)
-        s3 = sentence3(model)
-        kb_val = KB(model)
-        print(f"{str(model['P']):^3} {str(model['Q']):^3} {str(model['R']):^3} | "
-              f"{str(s1):^5} {str(s2):^6} {str(s3):^5} | {str(kb_val):^9}")
+        if KB(model) and not query(model):
+            # Found a model where KB is true but query false
+            return False
+    return True
 
-print_truth_table()
+# Queries to test
+def query_R(model):
+    return model['R']
+
+def query_R_implies_P(model):
+    R = model['R']
+    P = model['P']
+    return (not R) or P
+
+def query_Q_implies_R(model):
+    Q = model['Q']
+    R = model['R']
+    return (not Q) or R
+
+# Print truth table rows where KB is True
+print("Models where KB is true:")
+for values in product([True, False], repeat=len(symbols)):
+    model = dict(zip(symbols, values))
+    if KB(model):
+        print(model)
+
+# Check entailments
+print("\nDoes KB entail R? ", entails(KB, query_R, symbols))
+print("Does KB entail R -> P? ", entails(KB, query_R_implies_P, symbols))
+print("Does KB entail Q -> R? ", entails(KB, query_Q_implies_R, symbols))
