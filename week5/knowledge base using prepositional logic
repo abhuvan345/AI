@@ -1,0 +1,38 @@
+from itertools import product
+
+symbols = ['P', 'Q', 'R']
+
+def sentence1(model):
+    # Q -> P
+    Q = model['Q']
+    P = model['P']
+    return (not Q) or P
+
+def sentence2(model):
+    # P -> ¬Q
+    P = model['P']
+    Q = model['Q']
+    return (not P) or (not Q)
+
+def sentence3(model):
+    # Q ∨ R
+    Q = model['Q']
+    R = model['R']
+    return Q or R
+
+def KB(model):
+    return sentence1(model) and sentence2(model) and sentence3(model)
+
+def print_truth_table():
+    print(f"{'P':^3} {'Q':^3} {'R':^3} | {'Q->P':^5} {'P->¬Q':^6} {'Q∨R':^5} | {'KB True?':^9}")
+    print("-" * 38)
+    for values in product([True, False], repeat=len(symbols)):
+        model = dict(zip(symbols, values))
+        s1 = sentence1(model)
+        s2 = sentence2(model)
+        s3 = sentence3(model)
+        kb_val = KB(model)
+        print(f"{str(model['P']):^3} {str(model['Q']):^3} {str(model['R']):^3} | "
+              f"{str(s1):^5} {str(s2):^6} {str(s3):^5} | {str(kb_val):^9}")
+
+print_truth_table()
